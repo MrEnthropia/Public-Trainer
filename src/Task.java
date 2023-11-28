@@ -2,26 +2,26 @@ import java.util.ArrayList;
 
 //Класс Задача
 public class Task { //Класс Задача и его методы с конструктором
-    Manager manager= new Manager();
+    InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager();
 
     String name;
     String description;
 
     String id;
-    String status;
+    STATUS status;
 
     public String setId(String id){
         this.id=id;
         return id;
     }
-    public String setStatus(String status){
-        this.status=status;
+    public STATUS setStatus(STATUS status){
+        this.status= status;
         return status;
     }
     @Override
     public String toString(){
-        return "Задача: "+name+"."+
-                "Описание: "+description+"."+
+        return "Задача: "+name+". "+
+                "Описание: "+description+". "+
                 "Статус: "+status;
     }
 
@@ -38,8 +38,24 @@ public class Task { //Класс Задача и его методы с конс
     }
 
 
-    public String getStatus() {
+    public STATUS getStatus() {
         return status;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public InMemoryTaskManager getInMemoryTaskManager() {
+        return inMemoryTaskManager;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
 
@@ -75,12 +91,12 @@ public class Task { //Класс Задача и его методы с конс
     }
 
     @Override
-    public String getStatus() {
+    public STATUS getStatus() {
         return status;
     }
 
     @Override
-    public String setStatus(String status) {
+    public STATUS setStatus(STATUS status) {
         this.status = status;
         return status;
     }
@@ -92,12 +108,12 @@ public class Task { //Класс Задача и его методы с конс
         String id;
 
         @Override
-        public String getStatus() {
+        public STATUS getStatus() {
             return status;
         }
 
         @Override
-        public String setStatus(String status) {
+        public STATUS setStatus(STATUS status) {
             this.status = status;
             return status;
         }

@@ -1,16 +1,26 @@
+import java.io.IOException;
+import java.util.LinkedList;
+
 public class Main {
 
 
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        Manager manager= new Manager();
+        InMemoryTaskManager manager = new InMemoryTaskManager();
+        InMemoryHistoryManager historyManager=new InMemoryHistoryManager();
+        manager.historyManager=historyManager;
+        FileBackedTusksManager file=new FileBackedTusksManager();
+        file.manager=manager;
+        file.historyManager=historyManager;
+
+
 
         //Инициализация спиков задач
-        manager.allTask.put("Задачи",manager.taskMap);
-        manager.allTask.put("Эпики",manager.epicMap);
-        manager.allTask.put("Подзадачи",manager.subTaskMap);
+        manager.allTask.put("Задачи", manager.taskMap);
+        manager.allTask.put("Эпики", manager.epicMap);
+        manager.allTask.put("Подзадачи", manager.subTaskMap);
 
 
         //Задача 1
@@ -38,16 +48,25 @@ public class Main {
         //Создание задач методами
         Task TASK1 = manager.createTask(task1);
         Task TASK2= manager.createTask(task2);
-        Subtask SUBTASK1=manager.createTask(subtask1);
-        Subtask SUBTASK2=manager.createTask(subtask2);
+        Subtask SUBTASK1= manager.createTask(subtask1);
+        Subtask SUBTASK2= manager.createTask(subtask2);
         Epic EPIC1= manager.createTask(epic1,SUBTASK1,SUBTASK2); //В параметры вносятся Эпики и их Подзадачи
-        Subtask SUBTASK3=manager.createTask(subtask3);
+        Subtask SUBTASK3= manager.createTask(subtask3);
         Epic EPIC2= manager.createTask(epic2,SUBTASK3);
 
-        System.out.println(Manager.subtaskCount);
+
+        manager.updateTask("S2",SUBTASK2,STATUS.DONE);
+        manager.searchId("T1");
+        manager.searchId("T1");
+        manager.searchId("T2");
+        manager.searchId("E2");
+        file.save();
+
+
 
 
 
 
     }
+
 }
