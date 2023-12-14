@@ -1,3 +1,6 @@
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 //Интерфейс работы с историей
@@ -24,18 +27,18 @@ interface TaskManager{
 
 
 //Утилитарный класс Менеджер
-//final class Manager{
-//    InMemoryHistoryManager historyManager= new InMemoryHistoryManager();
-//
-//    InMemoryHistoryManager getDefaultHistory(){
-//        return historyManager;
-//    }
-//
+final class Managers{
+    InMemoryHistoryManager historyManager= new InMemoryHistoryManager();
+
+    InMemoryHistoryManager getDefaultHistory(){
+        return historyManager;
+    }
+
 //    public Manager() {
 //    }
-//
-//    private void getDefault(){}
-//}
+
+    private void getDefault(){}
+}
 
 //Класс Менеджер
 public class InMemoryTaskManager implements TaskManager {
@@ -60,6 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void addTask(String id, Task task) {
         taskMap.put(id, task);
     }
+    public void addTask(Task task){taskMap.put(task.getId(),task);}
 
     //Список Эпиков и метод добавления в него
     HashMap<String, Epic> epicMap = new HashMap<>();
@@ -67,12 +71,21 @@ public class InMemoryTaskManager implements TaskManager {
     public void addEpic(String id, Epic epic) {
         epicMap.put(id, epic);
     }
+    public void addEpic(Epic epic) {
+        epicMap.put(epic.getId(), epic);
+    }
 
     //Список Подзадач и метод добавления в него
     HashMap<String, Subtask> subTaskMap = new HashMap<>();
     public void addSubtask(String id, Subtask subtask){
         subTaskMap.put(id,subtask);
     }
+    public void addSubtask(Subtask subtask){
+        subTaskMap.put(subtask.getId(),subtask);
+    }
+
+    TreeSet<Task> prioritySet= new TreeSet<>(Task::compareTo);
+    public void addPriority(Task task){prioritySet.add(task);}
 
 
 
@@ -104,17 +117,18 @@ public class InMemoryTaskManager implements TaskManager {
     public Task createTask(Task t){ //Для задач
         genericId("Задача");
         String id="T"+ taskCount;
-        Task task=new Task(t.name, t.description);
+        Task task=new Task(t.name, t.description, t.startTime,t.duration);
         task.setStatus(STATUS.NEW);
         task.setId(id);
         addTask(id,task);
+        addPriority(task);
         return task;
     }
 
     public Subtask createTask(Subtask s){ //Для Подзадач
         genericId("Подзадача");
         String id="S"+subtaskCount;
-        Subtask subtask=new Subtask(s.name, s.description);
+        Subtask subtask=new Subtask(s.name, s.description, s.startTime,s.duration);
         subtask.setStatus(STATUS.NEW);
         subtask.setId(id);
         addSubtask(id,subtask);
@@ -135,6 +149,8 @@ public class InMemoryTaskManager implements TaskManager {
         for (Subtask subtask: epic.subtaskArray){
             subtask.setParentId(id);
         }
+        epicTime(epic);
+        addPriority(epic);
 
 
         return epic;
@@ -242,6 +258,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (taskMap.containsKey(id)){
             taskMap.put(id,task);
             task.setStatus(STATUS.NEW);
+            addPriority(task);
         }else {
             System.out.println("Задачи под номером "+id+" не существует.");
         }
@@ -252,6 +269,7 @@ public class InMemoryTaskManager implements TaskManager {
             Task e=epicMap.get(id);
             epic.setStatus(e.getStatus());
             epicMap.put(id,epic);
+            addPriority(epic);
         }else {
             System.out.println("Эпика под номером "+id+" не существует.");
         }
@@ -263,6 +281,7 @@ public class InMemoryTaskManager implements TaskManager {
             Task s=subTaskMap.get(id);
             subtask.setStatus(s.getStatus());
             subTaskMap.put(id,subtask);
+            addPriority(subtask);
         }else {
             System.out.println("Подзадачи под номером "+id+" не существует.");
         }
@@ -271,6 +290,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (taskMap.containsKey(id)){
             taskMap.put(id,task);
             task.setStatus(status);
+            addPriority(task);
         }else {
             System.out.println("Задачи под номером "+id+" не существует.");
         }
@@ -287,7 +307,7 @@ public class InMemoryTaskManager implements TaskManager {
                 if (Objects.equals(subtask1.getId(), subtask.id)){
                     int index=epic.subtaskArray.indexOf(subtask);
                     epic.subtaskArray.set(index,subtask);
-
+                    addPriority(epic);
                 }
             }
 
@@ -328,6 +348,18 @@ public class InMemoryTaskManager implements TaskManager {
             }
 
     }
+    public void epicTime(Epic epic){
+        Collections.sort(epic.subtaskArray);
+        epic.setStartTime(epic.subtaskArray.get(0).getStartTime());
+        Duration epicDuration=Duration.ofSeconds(0);
+        for (Subtask subtask : epic.subtaskArray){
+            epicDuration=epicDuration.plus(subtask.duration);
+        }
+        epic.setDuration(epicDuration);
+        epic.duration=epicDuration;
+        epic.setEndTime(epic.getEndTime());
+
+    }
 
 
 
@@ -338,6 +370,27 @@ public class InMemoryTaskManager implements TaskManager {
             return false;
         }
         return false;
+    }
+    public String printEndTime(Task task){
+        DateTimeFormatter formatter=DateTimeFormatter.ofPattern("dd.M, HH:mm");
+        String timeString="Ориентировочное время выполнения задачи: "+task.getEndTime().format(formatter)+".";
+        return timeString;
+    }
+    public String printEndTime(Epic epic){
+        DateTimeFormatter formatter=DateTimeFormatter.ofPattern("dd.M, HH:mm");
+        String timeString="Начало выполнения эпика: "+epic.getStartTime().format(formatter)+
+                ". Конец выполнения: "+epic.getEndTime().format(formatter)+".";
+        return timeString;
+    }
+    public String getPrioritizedTask(){
+        String priorityString="Список задач по приоритету";
+        for (Task task: prioritySet){
+            String value=task.getName()+". "+printEndTime(task);
+            priorityString=priorityString+"\n"+value;
+
+
+        }
+        return priorityString;
     }
 
 
